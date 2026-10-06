@@ -1,0 +1,30 @@
+{
+  "name": "@incidentgraph/api",
+  "version": "1.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch --tsconfig tsconfig.json src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/apps/api/src/main.js"
+  },
+  "dependencies": {
+    "@incidentgraph/shared": "*",
+    "@nestjs/common": "^11.1.0",
+    "@nestjs/core": "^11.1.0",
+    "@nestjs/platform-express": "^11.1.0",
+    "@prisma/client": "6.19.2",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.8.2",
+    "multer": "2.4.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6"
+  }
+}

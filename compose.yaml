@@ -1,0 +1,80 @@
+name: incidentgraph
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: incidentgraph
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run npm run setup first}
+      POSTGRES_DB: incidentgraph
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U incidentgraph -d incidentgraph']
+      interval: 5s
+      timeout: 5s
+      retries: 15
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    environment:
+      PORT: 4100
+      HOST: 0.0.0.0
+      DEMO_MODE: 'false'
+      STORAGE_MODE: postgres
+      DATABASE_URL: postgresql://incidentgraph:${POSTGRES_PASSWORD:?Run npm run setup first}@postgres:5432/incidentgraph
+      REDIS_URL: redis://redis:6379
+      WEB_ORIGIN: http://localhost:3100
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@incidentgraph.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Run npm run setup first}
+      NODE_ENV: development
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:4100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+      args:
+        API_URL: http://api:4100
+    environment:
+      API_URL: http://api:4100
+    depends_on:
+      api: { condition: service_healthy }
+    ports:
+      - '127.0.0.1:3100:3100'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:3100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+volumes:
+  postgres-data:
+  redis-data:

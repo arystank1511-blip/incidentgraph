@@ -1,0 +1,44 @@
+{
+  "events": [
+    {
+      "id": "example-pg-001",
+      "timestamp": "2026-09-13T15:00:00.000Z",
+      "serviceId": "postgres-main",
+      "environment": "production",
+      "description": "Connection pool utilization reached 99%",
+      "magnitude": 0.99,
+      "metric": "99 / 100 connections",
+      "severity": "critical"
+    },
+    {
+      "id": "example-pay-001",
+      "timestamp": "2026-09-13T15:00:18.000Z",
+      "serviceId": "payment-service",
+      "environment": "production",
+      "description": "Payment connection acquisition timed out",
+      "magnitude": 0.95,
+      "metric": "5,000 ms wait",
+      "severity": "critical"
+    },
+    {
+      "id": "example-order-001",
+      "timestamp": "2026-09-13T15:00:21.000Z",
+      "serviceId": "order-service",
+      "environment": "production",
+      "description": "Order creation failed after payment timeout",
+      "magnitude": 0.8,
+      "metric": "12% errors",
+      "severity": "warning"
+    },
+    {
+      "id": "example-gateway-001",
+      "timestamp": "2026-09-13T15:00:24.000Z",
+      "serviceId": "api-gateway",
+      "environment": "production",
+      "description": "Gateway returned HTTP 500 for checkout requests",
+      "magnitude": 0.7,
+      "metric": "8% errors",
+      "severity": "warning"
+    }
+  ]
+}
