@@ -57,7 +57,7 @@
     }
   },
   "dependencies": {
-    "@nestjs/platform-express": "^11.2.3"
+    "@nestjs/platform-express": "^12.1.2"
   },
   "maintainers": [
     {
