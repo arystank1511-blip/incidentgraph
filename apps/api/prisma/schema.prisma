@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+model Organization {
+  id String @id
+  name String
+  users User[]
+  projects Project[]
+}
+model User {
+  id String @id
+  email String @unique
+  name String
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+model Project {
+  id String @id
+  name String
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id])
+  environments Environment[]
+}
+model Environment {
+  id String @id
+  name String
+  projectId String
+  project Project @relation(fields: [projectId], references: [id])
+  services Service[]
+  incidents Incident[]
+  @@unique([projectId, name])
+}
+model Service {
+  id String @id
+  name String
+  environmentId String
+  environment Environment @relation(fields: [environmentId], references: [id])
+  payload Json
+  outgoing ServiceDependency[] @relation("caller")
+  incoming ServiceDependency[] @relation("dependency")
+  logs LogEntry[]
+  metrics MetricPoint[]
+  deployments Deployment[]
+  spans Span[]
+  @@index([environmentId, name])
+}
+model ServiceDependency {
+  source String
+  target String
+  caller Service @relation("caller", fields: [source], references: [id])
+  dependency Service @relation("dependency", fields: [target], references: [id])
+  @@id([source, target])
+}
+model Incident {
+  id String @id
+  title String
+  status String
+  severity String
+  startedAt DateTime
+  resolvedAt DateTime?
+  owner String
+  environmentId String
+  environment Environment @relation(fields: [environmentId], references: [id])
+  serviceIds String[]
+  rootCause String
+  summary String
+  events IncidentEvent[]
+  analysis RootCauseAnalysis?
+  annotations Annotation[]
+  @@index([environmentId, status, startedAt(sort: Desc)])
+  @@index([severity, startedAt(sort: Desc)])
+}
+model IncidentEvent {
+  id String @id
+  incidentId String
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  timestamp DateTime
+  payload Json
+  @@index([incidentId, timestamp])
+}
+model LogEntry {
+  id String @id
+  timestamp DateTime
+  level String
+  serviceId String
+  service Service @relation(fields: [serviceId], references: [id])
+  environment String
+  message String
+  traceId String
+  context Json
+  @@index([environment, timestamp(sort: Desc)])
+  @@index([serviceId, level, timestamp(sort: Desc)])
+  @@index([traceId])
+}
+model MetricPoint {
+  id String @id
+  timestamp DateTime
+  serviceId String
+  service Service @relation(fields: [serviceId], references: [id])
+  environment String
+  payload Json
+  @@index([serviceId, timestamp])
+}
+model Trace {
+  id String @id
+  timestamp DateTime
+  environment String
+  operation String
+  duration Int
+  status String
+  spans Span[]
+  @@index([environment, timestamp(sort: Desc)])
+}
+model Span {
+  id String @id
+  traceId String
+  trace Trace @relation(fields: [traceId], references: [id], onDelete: Cascade)
+  serviceId String
+  service Service @relation(fields: [serviceId], references: [id])
+  parentId String?
+  operation String
+  startMs Int
+  duration Int
+  status String
+  attributes Json
+  @@index([traceId, startMs])
+}
+model Deployment {
+  id String @id
+  serviceId String
+  service Service @relation(fields: [serviceId], references: [id])
+  timestamp DateTime
+  environment String
+  payload Json
+  @@index([serviceId, timestamp(sort: Desc)])
+}
+model RootCauseAnalysis {
+  id String @id @default(cuid())
+  incidentId String @unique
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  calculatedAt DateTime
+  methodVersion String
+  payload Json
+}
+model Annotation {
+  id String @id
+  incidentId String
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  author String
+  body String
+  createdAt DateTime
+  @@index([incidentId, createdAt])
+}

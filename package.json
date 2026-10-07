@@ -1,0 +1,78 @@
+{
+  "name": "incidentgraph",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Incident investigation with correlated telemetry and explainable root cause analysis.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arystank1511-blip/incidentgraph.git"
+  },
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=11"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "setup": "node infra/scripts/setup-local.mjs",
+    "predev": "npm run setup",
+    "demo": "node infra/scripts/start-demo.mjs",
+    "dev": "concurrently -k -n api,web -c cyan,green \"npm run dev -w @incidentgraph/api\" \"npm run dev -w @incidentgraph/web\"",
+    "build": "npm run db:generate && npm run build -w @incidentgraph/api && npm run build -w @incidentgraph/web",
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p apps/api && tsc --noEmit -p apps/web",
+    "lint": "eslint apps packages tests",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:generate": "prisma generate --schema apps/api/prisma/schema.prisma",
+    "db:push": "prisma db push --schema apps/api/prisma/schema.prisma",
+    "db:seed": "tsx apps/api/prisma/seed.ts",
+    "test:postgres": "npm run build -w @incidentgraph/api && node infra/scripts/verify-postgres.mjs",
+    "format": "prettier --write apps packages tests docs infra/scripts README.md"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.1",
+    "embedded-postgres": "^17.10.0-beta.17",
+    "eslint": "^9.39.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "prettier": "^3.9.6",
+    "prisma": "6.19.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.0",
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "multer": "^2.4.0",
+    "effect": "^3.20.0",
+    "deepmerge-ts": "^8.0.0",
+    "concurrently": {
+      "shell-quote": "^1.12.0"
+    }
+  },
+  "dependencies": {
+    "@nestjs/platform-express": "^11.2.3"
+  },
+  "maintainers": [
+    {
+      "name": "Arystan Kabdesh",
+      "url": "https://github.com/arystank1511-blip"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Arystan Kabdesh",
+      "url": "https://github.com/arystank1511-blip"
+    },
+    {
+      "name": "Tlegen6",
+      "url": "https://github.com/tilegen6"
+    }
+  ]
+}
